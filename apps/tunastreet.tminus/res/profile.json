@@ -1,0 +1,12 @@
+{
+    "icon_id": "launcher_icon",
+    "root": "root.json",
+    "screen_flows": [
+        {
+            "screen_flow": "main",
+            "layer": "AppDefault",
+            "mount_mode": "Replace",
+            "z_order": 0
+        }
+    ]
+}

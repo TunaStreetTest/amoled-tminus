@@ -1,0 +1,272 @@
+{
+    "type": "viewScreen",
+    "id": "home",
+    "style": {
+        "bgColor": "#000000",
+        "padding": 0
+    },
+    "commonProps": {
+        "scrollable": false,
+        "clickable": true
+    },
+    "layout": {
+        "type": "flex",
+        "flexFlow": "column",
+        "mainAlign": "start",
+        "crossAlign": "center",
+        "gap": 4
+    },
+    "events": [
+        {
+            "type": "gesture",
+            "action": "tminus.gesture"
+        }
+    ],
+    "children": [
+        {
+            "type": "container",
+            "id": "topbar",
+            "placement": {
+                "mode": "flow",
+                "width": 368,
+                "height": 34
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "clickable": false
+            },
+            "layout": {
+                "type": "flex",
+                "flexFlow": "row",
+                "mainAlign": "spaceBetween",
+                "crossAlign": "center",
+                "gap": 4
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "nav_prev",
+                    "placement": {
+                        "mode": "flow",
+                        "width": 44,
+                        "height": 34
+                    },
+                    "style": {
+                        "textColor": "#4a4a4a",
+                        "fontSize": 26,
+                        "textAlign": "center"
+                    },
+                    "commonProps": {
+                        "clickable": true
+                    },
+                    "labelProps": {
+                        "text": "«"
+                    },
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "tminus.prev",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "id": "brand",
+                    "placement": {
+                        "mode": "flow",
+                        "flexGrow": 1,
+                        "height": 24
+                    },
+                    "style": {
+                        "textColor": "#ffb000",
+                        "fontSize": 14,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "T-MINUS"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "nav_next",
+                    "placement": {
+                        "mode": "flow",
+                        "width": 44,
+                        "height": 34
+                    },
+                    "style": {
+                        "textColor": "#4a4a4a",
+                        "fontSize": 26,
+                        "textAlign": "center"
+                    },
+                    "commonProps": {
+                        "clickable": true
+                    },
+                    "labelProps": {
+                        "text": "»"
+                    },
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "tminus.next",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "label",
+            "id": "prefix",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 20
+            },
+            "style": {
+                "textColor": "#8a6a20",
+                "fontSize": 14,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": "T-"
+            }
+        },
+        {
+            "type": "label",
+            "id": "clock",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 72
+            },
+            "style": {
+                "textColor": "#ffb000",
+                "fontSize": 48,
+                "textAlign": "center"
+            },
+            "commonProps": {
+                "clickable": true
+            },
+            "labelProps": {
+                "text": "--:--:--"
+            },
+            "bindings": {
+                "style.textColor": "clockColor",
+                "style.fontSize": "clockSize"
+            },
+            "events": [
+                {
+                    "type": "clicked",
+                    "effects": [
+                        {
+                            "type": "emitAction",
+                            "action": "tminus.next",
+                            "requireValidPress": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "label",
+            "id": "vehicle",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 32
+            },
+            "style": {
+                "textColor": "#f2ede4",
+                "fontSize": 20,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": ""
+            }
+        },
+        {
+            "type": "label",
+            "id": "mission",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "flexGrow": 1
+            },
+            "style": {
+                "textColor": "#7a7468",
+                "fontSize": 14,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": ""
+            }
+        },
+        {
+            "type": "label",
+            "id": "pad",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 18
+            },
+            "style": {
+                "textColor": "#3a3630",
+                "fontSize": 12,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": ""
+            }
+        },
+        {
+            "type": "label",
+            "id": "status",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 16
+            },
+            "style": {
+                "textColor": "#f4212e",
+                "fontSize": 11,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": ""
+            }
+        },
+        {
+            "type": "label",
+            "id": "meta",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 14
+            },
+            "style": {
+                "textColor": "#4a4a4a",
+                "fontSize": 11,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": ""
+            }
+        }
+    ]
+}
