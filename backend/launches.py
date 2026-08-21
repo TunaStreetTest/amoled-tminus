@@ -124,6 +124,22 @@ def fetch_upcoming() -> list[dict[str, Any]]:
     return out
 
 
+def _next_idx(events: list[dict[str, Any]]) -> int:
+    """First launch that hasn't lifted off yet.
+
+    LL2's /upcoming/ window keeps a launch in the list after T-0 (it was
+    returning a Falcon 9 that flew ~6 h earlier as row 0), so defaulting to
+    row 0 puts a completed flight on the glass as the headline countdown.
+    Past launches stay reachable with the back arrow; they just aren't the
+    default view.
+    """
+    now = int(time.time())
+    for i, e in enumerate(events):
+        if e["t0_unix"] >= now:
+            return i
+    return 0
+
+
 class LaunchWindow:
     """Upcoming launches, refreshed on a TTL. idx follows launch id across refreshes."""
 
@@ -151,14 +167,14 @@ class LaunchWindow:
         self._at = now
         ids = [e["id"] for e in events]
         if self._current_id not in ids:
-            self._current_id = ids[0]
+            self._current_id = ids[_next_idx(events)]
 
     def snapshot(self, force: bool = False) -> tuple[list[dict[str, Any]], int]:
         with self._lock:
             self._refresh_locked(force=force)
             events = [dict(e) for e in self._events]
             ids = [e["id"] for e in events]
-            idx = ids.index(self._current_id) if self._current_id in ids else 0
+            idx = ids.index(self._current_id) if self._current_id in ids else _next_idx(events)
             self._current_id = ids[idx]
             return events, idx
 
