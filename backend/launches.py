@@ -45,10 +45,10 @@ def _clip(text: str, limit: int) -> str:
     s = re.sub(r"\s+", " ", (text or "")).strip()
     if len(s) <= limit:
         return s
-    cut = s[: max(limit - 1, 1)].rsplit(" ", 1)[0].rstrip(",;:·-–—")
+    cut = s[: max(limit - 1, 1)].rsplit(" ", 1)[0].rstrip(",;:-")
     if not cut:
         cut = s[: max(limit - 1, 1)]
-    return cut + "…"
+    return cut + "..."
 
 
 def _abbrev_pad(name: str) -> str:
@@ -96,7 +96,7 @@ def _normalize(raw: dict[str, Any]) -> dict[str, Any] | None:
     loc_name = _place(str(loc.get("name") or ""))
     pad_line = pad_name
     if loc_name and loc_name.lower() not in pad_name.lower():
-        pad_line = f"{pad_name} · {loc_name}" if pad_name else loc_name
+        pad_line = f"{pad_name} - {loc_name}" if pad_name else loc_name
     vehicle = str(rocket.get("name") or rocket.get("full_name") or "LAUNCH")
     abbrev = str(status.get("abbrev") or status.get("name") or "TBD")
     return {
