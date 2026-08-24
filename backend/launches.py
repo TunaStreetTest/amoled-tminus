@@ -13,7 +13,7 @@ import httpx
 LL2_URL = "https://ll.thespacedevs.com/2.2.0/launch/upcoming/"
 LL2_TTL_S = 15 * 60
 LIMIT = 8
-UA = "tunastreet-tminus/0.1 (+https://github.com/steven-matison/amoled-x-ember)"
+UA = "tunastreet-tminus/0.1 (+https://github.com/TunaStreetTest/amoled-tminus)"
 
 PAD_PREFIX = (
     (re.compile(r"^Space Launch Complex\s+", re.I), "SLC-"),

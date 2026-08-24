@@ -6,6 +6,12 @@
             "src": "launcher_icon.png",
             "width": 92,
             "height": 92
+        },
+        {
+            "id": "launch",
+            "src": "launch.png",
+            "width": 368,
+            "height": 200
         }
     ]
 }
