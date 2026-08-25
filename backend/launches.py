@@ -51,6 +51,17 @@ def _clip(text: str, limit: int) -> str:
     return cut + "..."
 
 
+def _vehicle_slug(name: str) -> str:
+    """Digested art-lookup key for a rocket configuration name -- the only
+    form of the vehicle name server.py is allowed to use to find generated
+    art (files/tminus/vehicles/<slug>.jpg). Matches the convention observed
+    in that directory: lowercase, non-alnum runs collapsed to one hyphen,
+    e.g. "Falcon 9" -> "falcon-9", "Starship" -> "starship".
+    """
+    s = re.sub(r"[^a-z0-9]+", "-", (name or "").strip().lower())
+    return s.strip("-")
+
+
 def _abbrev_pad(name: str) -> str:
     s = name or ""
     for pat, repl in PAD_PREFIX:
@@ -106,6 +117,9 @@ def _normalize(raw: dict[str, Any]) -> dict[str, Any] | None:
         "pad": _clip(pad_line, 40),
         "t0_unix": t0,
         "status": abbrev,
+        # Digested art-lookup key only -- resolved to a device-facing image
+        # URL by server.py's _payload(); never sent to the device as-is.
+        "art_slug": _vehicle_slug(vehicle),
     }
 
 
