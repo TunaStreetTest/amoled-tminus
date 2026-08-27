@@ -41,6 +41,17 @@
     var httpServiceHandle = null;
     var httpEventsOk = false;
 
+    // ------------------------------------------------------- vehicle art (#222)
+    // Own state, deliberately separate from `inFlight`/`navSeq` above: those
+    // two gate fetchNow()/step() (the countdown text path), and an art
+    // download must never block a swipe. See renderArt() for why nothing
+    // here touches `inFlight`.
+    var ART_SLOTS = 2; // consecutive launches often share a vehicle -- plenty
+    var artSlotOwner = [null, null]; // image URL currently on flash per slot
+    var artSlotCursor = 0;
+    var artShownSlot = -1; // slot whose file the art view currently displays
+    var artSeq = 0;        // bumped each render(); stale art downloads are ignored
+
     function log() {
         try {
             var parts = ["[tminus]"];
@@ -192,6 +203,12 @@
         setText("/status", msg || "");
     }
 
+    function cacheMarker(fileName) {
+        // Resolved by host_bridge.cpp resolve_storage_path_markers() to
+        // <volume>/apps/tunastreet.tminus/cache/<fileName>
+        return { "$brookesiaStoragePath": { "kind": "AppCache", "relative_path": fileName } };
+    }
+
     /**
      * No navigation debounce, on purpose (#220).
      *
@@ -313,12 +330,122 @@
         setBinding("/clock", "clockSize", f.hold ? "42" : "48");
     }
 
+    /**
+     * Per-vehicle rocket art (#222). Reads the same generated-art mechanism
+     * proven in tunastreet.xviewer's app.js (cacheMarker/pickSlot/
+     * showImageFromSlot there) -- ported here, not shared code, since this
+     * app's fallback differs: xviewer has no still image to fall back to and
+     * blacks out on a miss, but this screen's `art` node ships with the
+     * vector rocket as its initial src, and that vector art must stay the
+     * fallback on a miss AND on any download failure. So unlike xviewer's
+     * renderImage(), this never hides the node while a download is in
+     * flight -- whatever is already showing (vector, or a previously
+     * downloaded vehicle photo) stays up until a new one is confirmed good,
+     * and any failure path reverts to the vector src explicitly rather than
+     * leaving the node hidden.
+     */
+    function artUrlFor(ev) {
+        if (!ev || !ev.img) {
+            return null;
+        }
+        var s = String(ev.img);
+        if (s.indexOf("http://") === 0 || s.indexOf("https://") === 0) {
+            return s;
+        }
+        return BACKEND + (s.charAt(0) === "/" ? s : "/" + s);
+    }
+
+    function showVectorArt() {
+        // Fallback for a miss (no art for this vehicle) or a failed
+        // download. SetViewSrc succeeding only means the source was
+        // *accepted*, not that it decoded (a bad JPEG only shows up in the
+        // serial log) -- so the safest thing on any failure path is the
+        // vector art the screen ships with, unhidden, never a blank band.
+        guiCall("SetViewSrc", { Path: SCREEN + "/art", Src: "${image.launch}" });
+        setBinding("/art", "artHidden", "false");
+        artShownSlot = -1;
+    }
+
+    function showArtFromSlot(slot) {
+        var result = guiCall("SetViewSrc", {
+            Path: SCREEN + "/art",
+            Src: cacheMarker("art_" + slot + ".jpg")
+        });
+        if (result.success) {
+            artShownSlot = slot;
+            setBinding("/art", "artHidden", "false");
+        } else {
+            showVectorArt();
+        }
+    }
+
+    function pickArtSlot(url) {
+        for (var i = 0; i < ART_SLOTS; i++) {
+            if (artSlotOwner[i] === url) {
+                return i; // JPEG already on flash for this URL
+            }
+        }
+        // never overwrite the file the art view is currently showing
+        for (var j = 0; j < ART_SLOTS; j++) {
+            artSlotCursor = (artSlotCursor + 1) % ART_SLOTS;
+            if (artSlotCursor !== artShownSlot) {
+                return artSlotCursor;
+            }
+        }
+        return (artShownSlot + 1) % ART_SLOTS;
+    }
+
+    function renderArt(ev) {
+        var url = artUrlFor(ev);
+        if (!url) {
+            showVectorArt();
+            return;
+        }
+        for (var i = 0; i < ART_SLOTS; i++) {
+            if (artSlotOwner[i] === url) {
+                showArtFromSlot(i);
+                return;
+            }
+        }
+        // Keyed by URL, not launch id: two consecutive launches on the same
+        // vehicle share one cached slot and one download. Nothing is hidden
+        // here -- whatever is currently on screen (vector, or a previous
+        // vehicle's art) stays visible for the moment the download takes.
+        var slot = pickArtSlot(url);
+        var seqAtRequest = artSeq;
+        artSlotOwner[slot] = null; // file about to be overwritten
+        httpRequest({
+            url: url,
+            method: "Get",
+            timeout_ms: 10000,
+            download_path: cacheMarker("art_" + slot + ".jpg"),
+            max_file_size: 150000
+        }, function (response) {
+            if (artSeq !== seqAtRequest) {
+                // user moved on; keep the bytes, remember the owner for reuse
+                if (response && response.status_code === 200 && (!response.error || response.error === "Ok")) {
+                    artSlotOwner[slot] = url;
+                }
+                return;
+            }
+            if (!response || (response.error && response.error !== "Ok") || response.status_code !== 200) {
+                log("art fetch failed:", response ? (response.error_message || response.error) : "no response");
+                showVectorArt();
+                return;
+            }
+            artSlotOwner[slot] = url;
+            showArtFromSlot(slot);
+        });
+    }
+
     function render() {
+        artSeq++;
         if (!event) {
             setText("/vehicle", "");
             setText("/mission", "swipe >");
             setText("/pad", "");
             setText("/meta", "");
+            renderArt(null);
             return;
         }
         setText("/vehicle", String(event.vehicle || "").toUpperCase());
@@ -326,6 +453,7 @@
         setText("/pad", String(event.pad || ""));
         setText("/meta", String(event.status || "") + "   " + (event.idx + 1) + "/" + event.count);
         renderClock();
+        renderArt(event);
     }
 
     function applyEvent(data, seqAtRequest) {

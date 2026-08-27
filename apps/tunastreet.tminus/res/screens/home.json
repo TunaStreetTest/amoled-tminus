@@ -173,6 +173,9 @@
             "imageProps": {
                 "src": "${image.launch}",
                 "innerAlign": "contain"
+            },
+            "bindings": {
+                "commonProps.hidden": "artHidden"
             }
         },
         {
